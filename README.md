@@ -1,16 +1,39 @@
-# React + Vite
+# Touristify - Local Tour & Travel Web Guide
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Module
+SENG 41293 - Mobile Web Application Development (University of Kelaniya)
 
-Currently, two official plugins are available:
+## Tech Stack
+- React.js (Vite)
+- Tailwind CSS
+- React Router DOM (v6)
+- Native Fetch API
+- Lucide Icons
+- LocalStorage Web API
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Key Features Implemented
+- Mobile-first layout with premium minimalist styling and 48x48px touch targets.
+- Onboarding validation for name plus email or Sri Lankan mobile number.
+- LocalStorage-backed user profile persistence under `tourist_user`.
+- Mock REST API integration with asynchronous data fetching from `public/data/attractions.json`.
+- Detailed attraction view with HTML5 Geolocation API and Haversine distance calculation.
+- Deep-linking to Google Maps with one-tap navigation.
+- Bookmark favorites stored in LocalStorage with responsive favorites management.
+- Empty state screens for search misses and empty favorites.
+- Rich media gallery support and clean details layout.
 
-## React Compiler
+## Local Deployment Instructions
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Start the development server:
+   ```bash
+   npm run dev
+   ```
+3. Open the local URL shown in the terminal in your browser.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Browser Optimization Notes
+- Test in Chrome Developer Tools using the Device Toolbar for mobile viewport simulation.
+- Verify smooth responsive behavior at small widths and ensure no console errors during navigation.
+- Confirm the Google Maps deep-link opens in a new tab and location distance permissions are handled gracefully.
