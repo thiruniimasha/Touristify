@@ -60,12 +60,7 @@ export default function AttractionCard({
       <div className="absolute inset-0 bg-linear-to-t from-slate-900/90 via-slate-900/25 to-transparent" />
 
       <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3.5">
-        <div className="flex items-center gap-1 rounded-full bg-white/70 px-2.5 py-1 text-xs font-semibold text-slate-800 backdrop-blur-md">
-          <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-          {typeof attraction.rating === 'number'
-            ? attraction.rating.toFixed(1)
-            : '0.0'}
-        </div>
+        
         <span
           role="button"
           tabIndex={0}

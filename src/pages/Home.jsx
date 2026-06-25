@@ -227,11 +227,7 @@ export default function Home() {
                   {/* Dark Scrim Mask Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/20 to-transparent z-10" />
 
-                  {/* Floating Badge Layer (z-20) */}
-                  <div className="absolute top-4 left-4 z-20 bg-black/40 backdrop-blur text-white text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
-                    <Star className="h-3 w-3 fill-current" />
-                    {attraction.rating || '4.5'}
-                  </div>
+                  
 
                   {/* Bookmark/Heart Toggle (z-20) */}
                   <button

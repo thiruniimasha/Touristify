@@ -149,7 +149,6 @@ export default function Details() {
   const title = attraction.name || 'Unknown place'
   const placeDescription = attraction.longDescription ?? attraction.description ?? 'No description available.'
   const placeDistrict = attraction.district || 'Unknown district'
-  const placeRating = typeof attraction.rating === 'number' ? attraction.rating.toFixed(1) : '0.0'
   const placeDistance = attraction.distanceKm ? `${attraction.distanceKm.toFixed(1)} km away` : distanceLabel ?? 'Distance unavailable'
   const placeBestTime = attraction.bestTime || 'All year'
   const highlights = Array.isArray(attraction.highlights) ? attraction.highlights : []
@@ -201,10 +200,7 @@ export default function Details() {
                 {placeDistrict}
               </p>
             </div>
-            <div className="flex shrink-0 items-center gap-1 rounded-xl bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200">
-              <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-              <span className="font-bold text-slate-900">{placeRating}</span>
-            </div>
+            
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-3">
