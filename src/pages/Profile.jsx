@@ -41,7 +41,7 @@ export default function Profile() {
       <header className="w-full shrink-0 bg-[#0B1528] px-6 py-5 text-white flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-800/60 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
         <div className="flex flex-col">
           <p className="text-xs text-slate-400 font-medium tracking-wider">Ayubowan LK</p>
-          <h1 className="text-xl font-extrabold tracking-tight mt-0.5">Hiruni Imasha ✨</h1>
+         <h1 className="text-xl font-extrabold tracking-tight mt-0.5">{user?.name ?? 'Hiruni Imasha'} ✨</h1>
           <div className="text-xs text-slate-400 mt-1">⚙️ Profile &amp; Simulation Control</div>
         </div>
       </header>
