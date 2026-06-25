@@ -2,6 +2,9 @@
 
 Touristify is a modern, high-performance mobile-first web application designed to enhance the travel experience for tourists exploring Sri Lanka. Built with a focus on seamless user experience, real-time metrics, and clean aesthetics, the platform serves as an interactive digital pocket guide that bridges the gap between travelers and their next destination.
 
+### 🚀 Live Application
+🔗 **[touristify.vercel.app](https://touristify.vercel.app/)**
+
 ---
 
 ## 🛠️ Tech Stack
