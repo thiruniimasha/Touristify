@@ -166,11 +166,11 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="relative min-w-fit w-full sm:w-auto">
+        <div className="relative min-w-fit w-full sm:w-fit">
           <select
             value={simulatedDistrict ? simulatedDistrict.name : 'live'}
             onChange={(e) => handleDistrictChange(e.target.value)}
-            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 appearance-none pr-8 cursor-pointer"
+            className="bg-slate-50 border border-slate-200 min-w-fit w-full sm:w-fit rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 appearance-none pr-8 cursor-pointer"
             aria-label="Select district for simulation"
           >
             <option value="live">🟢 Current Live Location (Default)</option>
@@ -179,6 +179,7 @@ export default function Home() {
                 {d}
               </option>
             ))}
+            
           </select>
           <ChevronDown className="absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 pointer-events-none" />
         </div>
