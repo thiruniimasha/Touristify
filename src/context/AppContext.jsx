@@ -13,9 +13,7 @@ const DISTANCE_MULTIPLIERS = {
 function readLocalUser() {
   try {
     const raw = localStorage.getItem(USER_STORAGE_KEY)
-    if (!raw) {
-      return null
-    }
+    if (!raw) return null
 
     const parsed = JSON.parse(raw)
     if (
@@ -31,7 +29,6 @@ function readLocalUser() {
         contact: parsed.contact.trim(),
       }
     }
-
     return null
   } catch {
     return null
@@ -50,15 +47,13 @@ function saveLocalUser(user) {
 
 function clearLocalUser() {
   localStorage.removeItem(USER_STORAGE_KEY)
+  localStorage.removeItem(FAVORITES_STORAGE_KEY) // ✅ Clean favorites from storage too
 }
 
 function readLocalFavorites() {
   try {
     const raw = localStorage.getItem(FAVORITES_STORAGE_KEY)
-    if (!raw) {
-      return []
-    }
-
+    if (!raw) return []
     const parsed = JSON.parse(raw)
     return Array.isArray(parsed) ? parsed : []
   } catch {
@@ -112,7 +107,6 @@ export function AppProvider({ children }) {
   const refreshAttractions = useCallback(async () => {
     setLoading(true)
     setError(null)
-
     try {
       const data = await fetchAttractions()
       setAttractions(data)
@@ -135,7 +129,7 @@ export function AppProvider({ children }) {
   useEffect(() => {
     refreshAttractions()
     refreshDistricts()
-    // Initialize device GPS on provider mount
+    
     let mounted = true
     setGpsLoading(true)
     getBrowserGeolocation()
@@ -155,7 +149,10 @@ export function AppProvider({ children }) {
   }, [refreshAttractions, refreshDistricts])
 
   useEffect(() => {
-    saveLocalFavorites(favorites)
+    // Only save if user is active to avoid re-creating empty arrays on logout
+    if (localStorage.getItem(USER_STORAGE_KEY)) {
+      saveLocalFavorites(favorites)
+    }
   }, [favorites])
 
   const completeOnboarding = useCallback((name, contact) => {
@@ -164,11 +161,17 @@ export function AppProvider({ children }) {
     setUser(profile)
   }, [])
 
+  // ✅ FIXED: Safe Logout sequence with window location fallback redirection
   const logout = useCallback(() => {
     clearLocalUser()
-    setUser(null)
-    setFavorites([])
     setSimulatedDistrict(null)
+    setFavorites([])
+    setUser(null)
+    
+    // Explicitly push state window to root to trigger AppRouter onboarding route gate
+    setTimeout(() => {
+      window.location.href = '/'
+    }, 50)
   }, [])
 
   const addFavorite = useCallback((id) => {
@@ -222,7 +225,7 @@ export function AppProvider({ children }) {
         return 'Distance unavailable'
       }
     },
-      [simulatedDistrict, deviceCoords],
+    [simulatedDistrict, deviceCoords],
   )
 
   const value = useMemo(
@@ -270,4 +273,3 @@ export function AppProvider({ children }) {
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }
-
