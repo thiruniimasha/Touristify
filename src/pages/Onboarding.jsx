@@ -1,5 +1,6 @@
 import { Compass, Mail, User } from 'lucide-react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useUser } from '../hooks/useUser'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -35,6 +36,8 @@ export default function Onboarding() {
     return !nextErrors.name && !nextErrors.contact
   }
 
+  const navigate = useNavigate()
+
   function handleSubmit(event) {
     event.preventDefault()
 
@@ -43,6 +46,7 @@ export default function Onboarding() {
     }
 
     completeOnboarding(name, contact.trim())
+    navigate('/')
   }
 
   return (

@@ -1,11 +1,11 @@
-import { Heart, Mountain } from 'lucide-react'
+import { Bookmark, MapPin, Star, Mountain } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 function ImageFallback({ alt }) {
   return (
     <div
-      className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-emerald-500 via-teal-500 to-blue-600"
+      className="flex h-full w-full flex-col items-center justify-center bg-linear-to-br from-emerald-500 via-teal-500 to-blue-600"
       role="img"
       aria-label={alt}
     >
@@ -21,6 +21,7 @@ export default function AttractionCard({
   attraction,
   isFavorite,
   onToggleFavorite,
+  onOpen,
 }) {
   const [imageFailed, setImageFailed] = useState(false)
 
@@ -30,60 +31,85 @@ export default function AttractionCard({
     onToggleFavorite(attraction.slug)
   }
 
-  return (
-    <article className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-md transition-shadow duration-200 hover:shadow-lg">
-      <div className="relative">
-        <Link
-          to={`/attraction/${attraction.slug}`}
-          className="block active:scale-[0.99] transition-transform duration-150"
-        >
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-2xl bg-slate-200">
-            {imageFailed ? (
-              <ImageFallback alt={attraction.name} />
-            ) : (
-              <img
-                src={attraction.image}
-                alt={attraction.name}
-                className="h-full w-full object-cover"
-                loading="lazy"
-                decoding="async"
-                onError={() => setImageFailed(true)}
-              />
-            )}
-          </div>
-        </Link>
+  const imageUrl = attraction.image || '/placeholder.svg'
+  const emojiLabel = attraction.emoji ? `${attraction.emoji} ` : ''
+  const distanceText = attraction.distanceKm
+    ? `${attraction.distanceKm.toFixed(1)} km away`
+    : 'Distance unavailable'
 
-        <button
-          type="button"
+  return (
+    <Link
+      to={`/attraction/${attraction.slug}`}
+      className="group relative block h-60 w-full overflow-hidden rounded-3xl text-left shadow-sm ring-1 ring-slate-200/60 transition-all duration-300 active:scale-[0.98]"
+      onClick={(event) => {
+        if (onOpen) {
+          event.preventDefault()
+          onOpen(attraction)
+        }
+      }}
+      aria-label={`View details for ${attraction.name}`}
+    >
+      <img
+        src={imageFailed ? '/placeholder.svg' : imageUrl}
+        alt={attraction.name}
+        className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        loading="lazy"
+        decoding="async"
+        onError={() => setImageFailed(true)}
+      />
+      <div className="absolute inset-0 bg-linear-to-t from-slate-900/90 via-slate-900/25 to-transparent" />
+
+      <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3.5">
+        <div className="flex items-center gap-1 rounded-full bg-white/70 px-2.5 py-1 text-xs font-semibold text-slate-800 backdrop-blur-md">
+          <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+          {typeof attraction.rating === 'number'
+            ? attraction.rating.toFixed(1)
+            : '0.0'}
+        </div>
+        <span
+          role="button"
+          tabIndex={0}
           onClick={handleFavoriteClick}
-          className="absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 p-2 shadow-md backdrop-blur-sm transition-all active:scale-90"
-          aria-label={
-            isFavorite ? 'Remove from favorites' : 'Add to favorites'
-          }
-          aria-pressed={isFavorite}
-        >
-          <Heart
-            size={20}
-            strokeWidth={2}
-            className={
-              isFavorite
-                ? 'fill-emerald-600 text-emerald-600'
-                : 'text-slate-700'
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              event.stopPropagation()
+              onToggleFavorite(attraction.slug)
             }
+          }}
+          aria-label={
+            isFavorite ? 'Remove bookmark' : 'Add bookmark'
+          }
+          className="grid h-9 w-9 place-items-center rounded-full bg-white/70 backdrop-blur-md transition-all duration-300 active:scale-90"
+        >
+          <Bookmark
+            className={`h-4 w-4 transition-colors ${
+              isFavorite
+                ? 'fill-emerald-500 text-emerald-500'
+                : 'text-slate-700'
+            }`}
           />
-        </button>
+        </span>
       </div>
 
-      <div className="p-4 text-left">
-        <span className="inline-block rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+      <div className="absolute inset-x-0 bottom-0 p-4">
+        <span className="mb-2 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+          {emojiLabel}
           {attraction.category}
         </span>
-        <Link to={`/attraction/${attraction.slug}`}>
-          <h2 className="mt-2 text-base font-semibold leading-snug text-slate-800">
-            {attraction.name}
-          </h2>
-        </Link>
+        <h3 className="text-balance text-lg font-bold leading-tight text-white">
+          {attraction.name}
+        </h3>
+        <div className="mt-1.5 flex items-center justify-between text-white/80">
+          <span className="flex items-center gap-1 text-sm">
+            <MapPin className="h-3.5 w-3.5" />
+            {attraction.district || 'Unknown district'}
+          </span>
+          <span className="rounded-full bg-white/15 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-md">
+            🚗 {distanceText}
+          </span>
+        </div>
       </div>
-    </article>
+    </Link>
   )
 }

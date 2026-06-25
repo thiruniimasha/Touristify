@@ -1,94 +1,44 @@
-import {
-  AlertCircle,
-  ArrowLeft,
-  Loader2,
-  MapPin,
-  Mountain,
-  Navigation,
-} from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { API_ATTRACTIONS_URL } from '../utils/constants'
-import { formatDistanceKm, haversineDistanceKm } from '../utils/haversine'
+import { useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft, Bookmark, Clock, MapPin, Navigation, Star } from 'lucide-react'
+import { useApp } from '../context/useApp'
+import { useFavorites } from '../hooks/useFavorites'
 
-function HeroImageFallback({ alt }) {
+function DetailsSkeleton({ onBack }) {
   return (
-    <div
-      className="flex h-72 w-full flex-col items-center justify-center bg-gradient-to-br from-emerald-500 via-teal-500 to-blue-600"
-      role="img"
-      aria-label={alt}
-    >
-      <Mountain className="text-white/90" size={48} strokeWidth={1.5} aria-hidden />
-    </div>
-  )
-}
+    <div className="flex min-h-100vh flex-col bg-slate-50">
+      <div className="relative h-72 w-full animate-pulse bg-slate-200 lg:h-28rem">
+        <button
+          onClick={onBack}
+          aria-label="Go back"
+          className="absolute left-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white/70 backdrop-blur-md active:scale-90"
+        >
+          <ArrowLeft className="h-5 w-5 text-slate-800" />
+        </button>
+      </div>
 
-const geolocationSupported =
-  typeof navigator !== 'undefined' && 'geolocation' in navigator
+      <div className="relative mx-auto -mt-6 w-full max-w-3xl flex-1 rounded-t-3xl bg-slate-50 px-5 pt-8 lg:px-8">
+        <div className="h-5 w-24 animate-pulse rounded-full bg-slate-200" />
+        <div className="mt-3 h-7 w-3/4 animate-pulse rounded-lg bg-slate-200" />
+        <div className="mt-2 h-4 w-1/2 animate-pulse rounded-lg bg-slate-200" />
 
-function GeoDistanceCard({ latitude, longitude }) {
-  const [distanceLabel, setDistanceLabel] = useState(null)
-  const [geoError, setGeoError] = useState(null)
-  const [geoLoading, setGeoLoading] = useState(geolocationSupported)
-
-  useEffect(() => {
-    if (!geolocationSupported) {
-      return
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const distanceKm = haversineDistanceKm(
-          position.coords.latitude,
-          position.coords.longitude,
-          latitude,
-          longitude,
-        )
-        setDistanceLabel(formatDistanceKm(distanceKm))
-        setGeoError(null)
-        setGeoLoading(false)
-      },
-      () => {
-        setGeoError('Location permission denied. Distance unavailable.')
-        setDistanceLabel(null)
-        setGeoLoading(false)
-      },
-    )
-  }, [latitude, longitude])
-
-  return (
-    <div className="w-full rounded-2xl border border-slate-100 bg-white p-4 shadow-md">
-      <div className="flex items-start gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-50">
-          <MapPin
-            className="text-blue-600"
-            size={20}
-            strokeWidth={2}
-            aria-hidden
-          />
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <div className="h-24 animate-pulse rounded-2xl bg-slate-200" />
+          <div className="h-24 animate-pulse rounded-2xl bg-slate-200" />
         </div>
-        <div className="min-w-0 flex-1 text-left">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Your distance
-          </p>
-          {!geolocationSupported && (
-            <p className="mt-1 text-sm text-slate-600" role="status">
-              Geolocation is not supported on this device.
-            </p>
-          )}
-          {geolocationSupported && geoLoading && (
-            <p className="mt-1 text-sm text-slate-600">Calculating distance...</p>
-          )}
-          {geolocationSupported && !geoLoading && distanceLabel && (
-            <p className="mt-1 text-base font-semibold text-slate-800">
-              {distanceLabel}
-            </p>
-          )}
-          {geolocationSupported && !geoLoading && geoError && (
-            <p className="mt-1 text-sm text-slate-600" role="status">
-              {geoError}
-            </p>
-          )}
+
+        <div className="mt-6 h-5 w-32 animate-pulse rounded-lg bg-slate-200" />
+        <div className="mt-3 space-y-2">
+          <div className="h-3.5 w-full animate-pulse rounded bg-slate-200" />
+          <div className="h-3.5 w-full animate-pulse rounded bg-slate-200" />
+          <div className="h-3.5 w-5/6 animate-pulse rounded bg-slate-200" />
+          <div className="h-3.5 w-2/3 animate-pulse rounded bg-slate-200" />
+        </div>
+
+        <div className="mt-6 flex gap-2">
+          <div className="h-8 w-20 animate-pulse rounded-full bg-slate-200" />
+          <div className="h-8 w-24 animate-pulse rounded-full bg-slate-200" />
+          <div className="h-8 w-16 animate-pulse rounded-full bg-slate-200" />
         </div>
       </div>
     </div>
@@ -97,198 +47,211 @@ function GeoDistanceCard({ latitude, longitude }) {
 
 export default function Details() {
   const { id: slug } = useParams()
+  const navigate = useNavigate()
+  const { attractions, loading, error, getDistance } = useApp()
+  const { isFavorite, toggleFavorite } = useFavorites()
   const [attraction, setAttraction] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [distanceLabel, setDistanceLabel] = useState(null)
   const [imageFailed, setImageFailed] = useState(false)
+  const [detailsLoading, setDetailsLoading] = useState(true)
+
+  useEffect(() => {
+    if (!loading) {
+      const found = attractions.find((item) => item.slug === slug) || null
+      setAttraction(found)
+      setImageFailed(false)
+      setDetailsLoading(false)
+    }
+  }, [attractions, loading, slug])
 
   useEffect(() => {
     let cancelled = false
 
-    async function loadAttraction() {
-      setLoading(true)
-      setError(null)
-      setImageFailed(false)
-      setAttraction(null)
+    async function calculateDistance() {
+      if (!attraction) {
+        return
+      }
+
+      setDistanceLabel('Calculating route simulation...')
 
       try {
-        const response = await fetch(API_ATTRACTIONS_URL)
-
-        if (!response.ok) {
-          throw new Error(
-            `Unable to load destination details. Server responded with status ${response.status}.`,
-          )
-        }
-
-        const data = await response.json()
-
-        if (!Array.isArray(data)) {
-          throw new Error('Invalid attractions data format received from the API.')
-        }
-
-        const match = data.find((item) => item.slug === slug)
-
-        if (!match) {
-          throw new Error('Attraction not found.')
-        }
-
+        const label = await getDistance(
+          attraction.latitude,
+          attraction.longitude,
+          attraction.category,
+        )
         if (!cancelled) {
-          setAttraction(match)
+          setDistanceLabel(label)
         }
-      } catch (err) {
+      } catch {
         if (!cancelled) {
-          setError(
-            err instanceof Error
-              ? err.message
-              : 'Failed to load attraction details.',
-          )
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false)
+          setDistanceLabel('Distance unavailable')
         }
       }
     }
 
-    loadAttraction()
+    calculateDistance()
 
     return () => {
       cancelled = true
     }
-  }, [slug])
+  }, [attraction, getDistance])
 
-  if (loading) {
-    return (
-      <main
-        className="flex min-h-[60vh] flex-col items-center justify-center bg-slate-50"
-        role="status"
-        aria-live="polite"
-      >
-        <Loader2
-          className="animate-spin text-emerald-600"
-          size={32}
-          strokeWidth={2}
-          aria-hidden
-        />
-        <p className="mt-3 text-sm font-medium text-slate-600">
-          Loading details...
-        </p>
-      </main>
-    )
+  function handleBack() {
+    navigate(-1)
   }
 
-  if (error || !attraction) {
+  if (loading || detailsLoading) {
+    return <DetailsSkeleton onBack={handleBack} />
+  }
+
+  if (error && !attraction) {
     return (
       <main className="bg-slate-50 px-4 py-12">
-        <div
-          className="mx-auto flex max-w-md items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 shadow-sm"
-          role="alert"
-        >
-          <AlertCircle
-            className="mt-0.5 shrink-0 text-red-500"
-            size={20}
-            strokeWidth={2}
-            aria-hidden
-          />
-          <div>
-            <p className="text-sm font-semibold text-red-800">
-              Could not load this destination
-            </p>
-            <p className="mt-1 text-sm text-red-600">
-              {error ?? 'Attraction not found'}
-            </p>
+        <div className="mx-auto max-w-md rounded-3xl border border-red-200 bg-red-50 p-5 shadow-sm" role="alert">
+          <div className="flex items-start gap-3">
+            <p className="text-sm font-semibold text-red-800">Unable to load destination</p>
+            <p className="mt-1 text-sm text-red-600">{error}</p>
           </div>
-        </div>
-        <div className="mt-6 text-center">
-          <Link
-            to="/"
-            className="inline-flex h-12 items-center justify-center rounded-xl px-5 text-sm font-medium text-emerald-600 transition-all active:scale-95"
-          >
-            Back to home
-          </Link>
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="inline-flex h-12 items-center justify-center rounded-xl bg-emerald-600 px-5 text-sm font-semibold text-white transition-all active:scale-95 hover:bg-emerald-700"
+            >
+              Return
+            </button>
+          </div>
         </div>
       </main>
     )
   }
 
+  if (!attraction) {
+    return (
+      <main className="bg-slate-50 px-4 py-12">
+        <div className="mx-auto max-w-md rounded-3xl border border-slate-200 bg-white p-5 shadow-sm text-center">
+          <p className="text-sm font-semibold text-slate-800">Attraction not found</p>
+          <p className="mt-2 text-sm text-slate-600">Please return to the home screen and select another destination.</p>
+          <button
+            type="button"
+            onClick={handleBack}
+            className="mt-6 inline-flex h-12 items-center justify-center rounded-xl bg-emerald-600 px-5 text-sm font-semibold text-white transition-all active:scale-95 hover:bg-emerald-700"
+          >
+            Back
+          </button>
+        </div>
+      </main>
+    )
+  }
+
+  const heroImage = attraction.image || '/placeholder.svg'
+  const title = attraction.name || 'Unknown place'
+  const placeDescription = attraction.longDescription ?? attraction.description ?? 'No description available.'
+  const placeDistrict = attraction.district || 'Unknown district'
+  const placeRating = typeof attraction.rating === 'number' ? attraction.rating.toFixed(1) : '0.0'
+  const placeDistance = attraction.distanceKm ? `${attraction.distanceKm.toFixed(1)} km away` : distanceLabel ?? 'Distance unavailable'
+  const placeBestTime = attraction.bestTime || 'All year'
+  const highlights = Array.isArray(attraction.highlights) ? attraction.highlights : []
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${attraction.latitude},${attraction.longitude}`
+  const bookmarked = isFavorite(attraction.slug)
 
   return (
-    <div className="bg-slate-50">
-      <div className="relative w-full">
-        {imageFailed ? (
-          <HeroImageFallback alt={attraction.name} />
-        ) : (
-          <img
-            src={attraction.image}
-            alt={attraction.name}
-            className="h-72 w-full object-cover"
-            onError={() => setImageFailed(true)}
-          />
-        )}
+    <div className="flex min-h-100vh flex-col bg-slate-50">
+      <div className="pb-28">
+        <div className="relative h-72 w-full lg:h-28rem">
+          <img src={heroImage} alt={title} className="h-full w-full object-cover" onError={() => setImageFailed(true)} />
+          <div className="absolute inset-0 bg-linear-to-t from-slate-50 via-transparent to-slate-900/30" />
 
-        <Link
-          to="/"
-          className="absolute left-4 top-4 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-md backdrop-blur-sm transition-all active:scale-95"
-          aria-label="Go back"
-        >
-          <ArrowLeft size={20} strokeWidth={2} aria-hidden />
-        </Link>
-      </div>
-
-      <div className="relative z-10 -mt-6 space-y-5 rounded-t-3xl bg-slate-50 p-5 pt-8">
-        <div>
-          <span className="inline-block rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
-            {attraction.category}
-          </span>
-          <h1 className="mt-3 text-2xl font-bold leading-tight text-slate-800">
-            {attraction.name}
-          </h1>
-          <div className="mt-4 space-y-3">
-            <h2 className="text-sm font-semibold text-slate-800">
-              About this place
-            </h2>
-            <p className="text-slate-600 leading-relaxed text-sm text-justify">
-              {attraction.longDescription ?? attraction.description}
-            </p>
+          <div className="absolute inset-x-0 top-0 mx-auto flex w-full max-w-5xl items-center justify-between p-4 lg:px-8 lg:pt-6">
+            <button
+              type="button"
+              onClick={handleBack}
+              aria-label="Go back"
+              className="grid h-10 w-10 place-items-center rounded-full bg-white/70 backdrop-blur-md transition-all duration-300 active:scale-90"
+            >
+              <ArrowLeft className="h-5 w-5 text-slate-800" />
+            </button>
+            <button
+              type="button"
+              onClick={() => toggleFavorite(attraction.slug)}
+              aria-label={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
+              className="grid h-10 w-10 place-items-center rounded-full bg-white/70 backdrop-blur-md transition-all duration-300 active:scale-90"
+            >
+              <Bookmark
+                className={`h-5 w-5 transition-colors ${
+                  bookmarked ? 'fill-emerald-500 text-emerald-500' : 'text-slate-800'
+                }`}
+              />
+            </button>
           </div>
         </div>
 
-        {Array.isArray(attraction.gallery) && attraction.gallery.length > 0 && (
-          <div className="mt-5">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-slate-800">
-                Gallery
-              </h2>
+        <div className="relative mx-auto -mt-6 max-w-3xl rounded-t-3xl bg-slate-50 px-5 pt-6 lg:px-8 lg:pt-8">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+                {attraction.emoji ?? '📍'} {attraction.category}
+              </span>
+              <h1 className="mt-2 text-balance text-2xl font-bold leading-tight text-slate-900">
+                {title}
+              </h1>
+              <p className="mt-1 flex items-center gap-1 text-sm text-slate-500">
+                <MapPin className="h-4 w-4 text-emerald-600" />
+                {placeDistrict}
+              </p>
             </div>
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
-              {attraction.gallery.map((imageUrl, index) => (
-                <img
-                  key={`${imageUrl}-${index}`}
-                  src={imageUrl}
-                  alt={`${attraction.name} gallery ${index + 1}`}
-                  className="w-28 h-28 rounded-xl border border-slate-100 object-cover shadow-sm flex-shrink-0"
-                />
-              ))}
+            <div className="flex shrink-0 items-center gap-1 rounded-xl bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200">
+              <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
+              <span className="font-bold text-slate-900">{placeRating}</span>
             </div>
           </div>
-        )}
 
-        <GeoDistanceCard
-          key={attraction.slug}
-          latitude={Number(attraction.latitude)}
-          longitude={Number(attraction.longitude)}
-        />
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div className="rounded-2xl bg-white p-3.5 shadow-sm ring-1 ring-slate-200">
+              <Navigation className="h-4 w-4 text-emerald-600" />
+              <p className="mt-2 text-xs text-slate-400">Driving distance</p>
+              <p className="font-bold text-slate-900">{placeDistance}</p>
+            </div>
+            <div className="rounded-2xl bg-white p-3.5 shadow-sm ring-1 ring-slate-200">
+              <Clock className="h-4 w-4 text-emerald-600" />
+              <p className="mt-2 text-xs text-slate-400">Best time</p>
+              <p className="text-sm font-bold leading-tight text-slate-900">{placeBestTime}</p>
+            </div>
+          </div>
 
-        <a
-          href={mapsUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-4 text-center text-sm font-medium text-white shadow-lg transition-all active:scale-[0.98] hover:bg-emerald-700"
+          <h2 className="mt-6 text-base font-bold text-slate-900">About this place</h2>
+          <p className="mt-2 text-sm leading-relaxed text-slate-600">{placeDescription}</p>
+
+          <h2 className="mt-6 text-base font-bold text-slate-900">Highlights</h2>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {highlights.length > 0 ? (
+              highlights.map((highlight) => (
+                <span
+                  key={highlight}
+                  className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700"
+                >
+                  {highlight}
+                </span>
+              ))
+            ) : (
+              <span className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700">
+                No highlights available
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white/80 px-5 pb-6 pt-3 backdrop-blur-md lg:px-8">
+        <button
+          type="button"
+          onClick={() => window.open(mapsUrl, '_blank', 'noopener')}
+          className="mx-auto flex w-full max-w-3xl items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-3.5 text-sm font-semibold text-white shadow-md shadow-emerald-500/30 transition-all duration-300 active:scale-[0.98]"
         >
-          <Navigation size={20} strokeWidth={2} aria-hidden />
-          Navigate using Google Maps
-        </a>
+          <Navigation className="h-4 w-4" />
+          Start Navigation
+        </button>
       </div>
     </div>
   )

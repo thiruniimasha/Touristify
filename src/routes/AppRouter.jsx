@@ -1,7 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import AppShell from '../components/layout/AppShell'
 import Details from '../pages/Details'
-import Favorites from '../pages/Favorites'
+import Saved from '../pages/Saved'
 import Home from '../pages/Home'
 import Profile from '../pages/Profile'
 
@@ -12,7 +12,7 @@ export default function AppRouter() {
         <Route element={<AppShell />}>
           <Route index element={<Home />} />
           <Route path="attraction/:id" element={<Details />} />
-          <Route path="favorites" element={<Favorites />} />
+          <Route path="Saved" element={<Saved />} />
           <Route path="profile" element={<Profile />} />
         </Route>
       </Routes>

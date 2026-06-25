@@ -1,232 +1,283 @@
-import { AlertCircle, Loader2, Search, X } from 'lucide-react'
+import { AlertCircle, Loader2, RotateCw, Search, ChevronDown, MapPin, Heart, Star } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import AttractionCard from '../components/AttractionCard'
+import { useNavigate } from 'react-router-dom'
+import { useApp } from '../context/useApp'
 import { useUser } from '../hooks/useUser'
 import { useFavorites } from '../hooks/useFavorites'
-import { API_ATTRACTIONS_URL, CATEGORIES } from '../utils/constants'
+import { CATEGORIES } from '../utils/constants'
+import BottomNav from '../components/layout/BottomNav'
+
 
 export default function Home() {
+  const navigate = useNavigate()
   const { user } = useUser()
-  const { isFavorite, toggleFavorite } = useFavorites()
-  const [attractions, setAttractions] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('All')
+  const { attractions = [], districts = [], loading, error, refreshAttractions, simulatedDistrict, setSimulatedDistrict, getDistance, deviceCoords, gpsLoading } = useApp()
+  const { favoriteIds = [], isFavorite, toggleFavorite } = useFavorites()
+
+  const [query, setQuery] = useState('')
+  const [category, setCategory] = useState('All')
+  const [syncing, setSyncing] = useState(false)
+  const [enriched, setEnriched] = useState([])
+
+  const districtOptions = useMemo(() => {
+    const apiOpts = Array.isArray(districts) ? districts.map((d) => (typeof d === 'string' ? d : d?.name ?? d?.district)) : []
+    if (apiOpts.length) return [...new Set(apiOpts.filter(Boolean))].sort()
+    return [...new Set(attractions.map((a) => a.district).filter(Boolean))].sort()
+  }, [districts, attractions])
 
   useEffect(() => {
-    let cancelled = false
-
-    async function loadAttractions() {
-      setLoading(true)
-      setError(null)
-
-      try {
-        const response = await fetch(API_ATTRACTIONS_URL)
-
-        if (!response.ok) {
-          throw new Error(
-            `Unable to load destinations. Server responded with status ${response.status}.`,
-          )
-        }
-
-        const data = await response.json()
-
-        if (!Array.isArray(data)) {
-          throw new Error('Invalid attractions data format received from the API.')
-        }
-
-        if (!cancelled) {
-          setAttractions(data)
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(
-            err instanceof Error
-              ? err.message
-              : 'Something went wrong while loading destinations.',
-          )
-          setAttractions([])
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false)
-        }
+    let mounted = true
+    async function enrich() {
+      if (!getDistance) {
+        if (mounted) setEnriched(attractions.map((a) => ({ ...a })))
+        return
       }
+
+      const results = await Promise.all(
+        attractions.map(async (a) => {
+          try {
+            const d = await getDistance(a.latitude, a.longitude, a.category)
+            const match = String(d).match(/([0-9]+(?:\.[0-9]+)?)/)
+            const km = match ? Number(match[1]) : null
+            return { ...a, distanceKm: km }
+          } catch {
+            return { ...a, distanceKm: null }
+          }
+        }),
+      )
+
+      if (mounted) setEnriched(results)
     }
 
-    loadAttractions()
-
+    enrich()
     return () => {
-      cancelled = true
+      mounted = false
     }
-  }, [])
+  }, [attractions, getDistance, simulatedDistrict])
 
-  const filteredAttractions = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase()
-
-    return attractions.filter((attraction) => {
-      const matchesCategory =
-        selectedCategory === 'All' ||
-        attraction.category === selectedCategory
-      const matchesSearch =
-        query.length === 0 ||
-        attraction.name.toLowerCase().includes(query)
-
-      return matchesCategory && matchesSearch
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return enriched.filter((a) => {
+      const matchesCategory = category === 'All' || a.category === category
+      const matchesQuery = q === '' || a.name.toLowerCase().includes(q) || (a.district || '').toLowerCase().includes(q)
+      return matchesCategory && matchesQuery
     })
-  }, [attractions, selectedCategory, searchTerm])
+  }, [enriched, category, query])
 
-  function handleClearSearch() {
-    setSearchTerm('')
+  const handleRefresh = async () => {
+    setSyncing(true)
+    await refreshAttractions()
+    setTimeout(() => setSyncing(false), 500)
   }
 
-  const hasSearchValue = searchTerm.trim().length > 0
+  const handleDistrictChange = (value) => {
+    // 'live' means use device GPS
+    if (value === 'live' || value === 'Colombo' || value === '') {
+      setSimulatedDistrict(null)
+      return
+    }
+
+    const entry = districts.find((d) => (typeof d === 'string' ? d === value : d?.name === value || d?.district === value))
+    if (entry && typeof entry !== 'string' && entry.latitude && entry.longitude) {
+      setSimulatedDistrict({ name: entry.name ?? entry.district ?? value, latitude: Number(entry.latitude), longitude: Number(entry.longitude) })
+      return
+    }
+
+    const match = attractions.find((a) => a.district === value)
+    if (match) {
+      setSimulatedDistrict({ name: value, latitude: Number(match.latitude), longitude: Number(match.longitude) })
+    }
+  }
+
+  const activeDistrictName = simulatedDistrict?.name ?? (deviceCoords ? 'Live GPS' : 'Colombo')
 
   return (
-    <div className="min-h-full bg-slate-50">
-      <section className="space-y-3.5 border-b border-slate-100 bg-white px-4 pb-3.5 pt-4 shadow-sm">
-        <header>
-          <p className="text-xs font-medium tracking-wide text-emerald-600">
-            Welcome back
-          </p>
-          <h1 className="mt-0.5 text-xl font-semibold tracking-tight text-slate-800">
-            Hello, {user?.name ?? 'Explorer'} 👋
-          </h1>
-        </header>
+    <div className="bg-slate-50 text-slate-900 w-full">
+      {/* ========== 🌌 OBSIDIAN DARK BRAND HEADER ========== */}
+        <header className="w-full shrink-0 bg-[#0B1528] px-6 py-5 text-white flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-800/60 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+        {/* Left Side Container */}
+        <div className="flex flex-col">
+          <p className="text-xs text-slate-400 font-medium tracking-wider">Ayubowan LK</p>
+          <h1 className="text-xl font-extrabold tracking-tight mt-0.5">{user?.name ?? 'Hiruni Imasha'} ✨</h1>
+          <div className="text-xs text-emerald-400 flex items-center gap-1 mt-1">📍 Exploring near {activeDistrictName}</div>
+        </div>
 
-        <div className="relative">
-          <div
-            className={[
-              'relative flex min-h-12 items-center rounded-xl border border-slate-200/80 bg-white shadow-sm transition-colors duration-200',
-              'focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/15',
-            ].join(' ')}
-          >
-            <Search
-              className="pointer-events-none absolute left-3.5 text-slate-400"
-              size={18}
-              strokeWidth={2}
-              aria-hidden
-            />
+        {/* Center Container - Search Pill */}
+          <div className="w-full max-w-lg mx-auto">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-300" />
             <input
-              type="search"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search locations..."
-              className={[
-                'min-h-12 w-full border-0 bg-transparent py-2.5 pl-10 text-sm text-slate-800 outline-none placeholder:text-slate-400',
-                hasSearchValue ? 'pr-12' : 'pr-4',
-              ].join(' ')}
-              aria-label="Search locations by name"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search destinations, districts..."
+              className="w-full bg-slate-900/60 border border-slate-800 text-slate-200 rounded-full px-5 py-2 text-sm focus:outline-none focus:border-emerald-500/50 pl-12"
             />
-            {hasSearchValue && (
-              <button
-                type="button"
-                onClick={handleClearSearch}
-                className="absolute right-0 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-r-xl text-slate-500 transition-all duration-200 active:scale-90 hover:bg-slate-50 hover:text-slate-800"
-                aria-label="Clear search"
-              >
-                <X size={18} strokeWidth={2} aria-hidden />
-              </button>
+          </div>
+        </div>
+
+        {/* Right Side Container - Refresh Button */}
+        <button
+          onClick={handleRefresh}
+          className="hidden sm:inline-flex items-center justify-center rounded-full border border-emerald-700 bg-emerald-700/10 p-2.5 text-emerald-400 hover:bg-emerald-700/20 transition h-fit"
+          aria-label="Refresh attractions"
+        >
+          <RotateCw className={`h-5 w-5 ${syncing ? 'animate-spin' : ''}`} />
+        </button>
+      </header>
+
+      {/* ========== SCROLLABLE BODY CONTAINER ========== */}
+      <div className="flex-1 overflow-y-auto pb-20">
+        {/* ========== 🏷️ HORIZONTAL CATEGORY SCROLL ========== */}
+        <div className="flex items-center gap-2 overflow-x-auto py-4 px-6 no-scrollbar">
+        {CATEGORIES.map((c) => {
+          const isActive = category === c.value
+          return (
+            <button
+              key={c.value}
+              onClick={() => setCategory(c.value)}
+              className={
+                isActive
+                  ? 'bg-emerald-500 text-white px-4 py-1.5 text-xs font-bold rounded-full whitespace-nowrap shadow-sm'
+                  : 'bg-white border border-slate-200 text-slate-600 px-4 py-1.5 text-xs font-medium rounded-full whitespace-nowrap hover:bg-slate-50 transition'
+              }
+            >
+              <span className="inline-block mr-1">{c.emoji}</span>
+              {c.label}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* ========== 🗺️ LOCATION SIMULATION WIDGET BAR ========== */}
+      <div className="mx-6 my-5 bg-white border border-slate-100 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-start sm:items-center gap-3">
+          <span className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${simulatedDistrict ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600 animate-pulse'}`}>
+            <MapPin className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="text-sm font-bold text-slate-800">Location Context</p>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {gpsLoading
+                ? 'Using Device Live GPS'
+                : simulatedDistrict
+                ? "Simulating location. Distances recalculated from the selected district."
+                : "Tracking via your device's active live coordinates."}
+            </p>
+          </div>
+        </div>
+
+        <div className="relative min-w-fit w-full sm:w-auto">
+          <select
+            value={simulatedDistrict ? simulatedDistrict.name : 'live'}
+            onChange={(e) => handleDistrictChange(e.target.value)}
+            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 appearance-none pr-8 cursor-pointer"
+            aria-label="Select district for simulation"
+          >
+            <option value="live">🟢 Current Live Location (Default)</option>
+            {districtOptions.map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 pointer-events-none" />
+        </div>
+      </div>
+
+      
+        {/* ========== COLUMN A: LEFT CONTENT STREAM (lg:col-span-8) ========== */}
+        <section className="lg:col-span-8">
+          <h2 className="mx-6 my-4 text-base font-black text-slate-800 mb-4 tracking-tight">Featured Places ({filtered.length} results)</h2>
+
+          {/* ATTRACTION GRID CONTAINER (force 3 columns max) */}
+          <div className="mx-6 my-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {loading ? (
+              <div className="col-span-full flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 p-12 text-slate-500">
+                <Loader2 className="h-6 w-6 animate-spin mr-3" />
+                <span className="text-sm">Loading attractions...</span>
+              </div>
+            ) : error ? (
+              <div className="col-span-full rounded-2xl border border-red-200 bg-red-50 p-6 text-red-700">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="h-5 w-5" />
+                  <p className="font-semibold">Unable to load attractions</p>
+                </div>
+                <p className="mt-2 text-sm">{error}</p>
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="col-span-full rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center">
+                <p className="text-sm uppercase tracking-wider text-slate-400 mb-2">No results</p>
+                <p className="text-slate-600 text-sm">Try adjusting your filters or search terms.</p>
+              </div>
+            ) : (
+              filtered.map((attraction) => (
+                <div
+                  key={attraction.slug}
+                  className="rounded-[2rem] overflow-hidden border border-slate-100 bg-white shadow-sm relative group h-[280px] cursor-pointer"
+                  onClick={() => navigate(`/attraction/${attraction.slug}`)}
+                >
+                  {/* Image Element */}
+                  <img
+                    src={attraction.image}
+                    alt={attraction.name}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+
+                  {/* Dark Scrim Mask Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/20 to-transparent z-10" />
+
+                  {/* Floating Badge Layer (z-20) */}
+                  <div className="absolute top-4 left-4 z-20 bg-black/40 backdrop-blur text-white text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+                    <Star className="h-3 w-3 fill-current" />
+                    {attraction.rating || '4.5'}
+                  </div>
+
+                  {/* Bookmark/Heart Toggle (z-20) */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      toggleFavorite(attraction.slug)
+                    }}
+                    className="absolute top-4 right-4 z-20 bg-white/90 text-emerald-600 p-2 rounded-full shadow hover:bg-white transition"
+                    aria-label={isFavorite(attraction.slug) ? 'Remove from favorites' : 'Add to favorites'}
+                  >
+                    <Heart className={`h-4 w-4 ${isFavorite(attraction.slug) ? 'fill-current' : ''}`} />
+                  </button>
+
+                  {/* Absolute Bottom Metadata Content (z-20) */}
+                  <div className="absolute bottom-0 left-0 right-0 p-5 z-20">
+                    {/* Category Tag */}
+                    <div className="bg-amber-500 text-slate-950 text-[9px] font-black tracking-wider uppercase px-2 py-0.5 rounded w-max">
+                      {attraction.category}
+                    </div>
+
+                    {/* Title Text */}
+                    <h3 className="text-base font-extrabold text-white mt-1.5 leading-tight line-clamp-2">{attraction.name}</h3>
+
+                    {/* Bottom Info Line */}
+                    <div className="flex justify-between items-center mt-2 w-full">
+                      {/* Left: District/Location */}
+                      <div className="text-slate-300 text-xs flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {attraction.district}
+                      </div>
+
+                      {/* Right: Distance Badge */}
+                      <div className="bg-slate-900/60 backdrop-blur border border-white/10 text-slate-200 text-[10px] font-bold px-2.5 py-1 rounded-full">
+                        {attraction.distanceKm ? `${attraction.distanceKm.toFixed(1)} km` : 'N/A'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
             )}
           </div>
-        </div>
+        </section>
 
-        <div
-          className="scrollbar-hide -mx-1 flex gap-2 overflow-x-auto overscroll-x-contain px-1 pb-0.5"
-          role="tablist"
-          aria-label="Filter by category"
-        >
-          {CATEGORIES.map((category) => {
-            const isActive = selectedCategory === category
-            return (
-              <button
-                key={category}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => setSelectedCategory(category)}
-                className={[
-                  'inline-flex h-12 min-h-12 shrink-0 items-center justify-center rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ease-in-out active:scale-95',
-                  isActive
-                    ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/25'
-                    : 'bg-white text-slate-600 ring-1 ring-slate-200/90 hover:bg-slate-50',
-                ].join(' ')}
-              >
-                {category}
-              </button>
-            )
-          })}
-        </div>
-      </section>
-
-      <section className="space-y-4 pt-3.5">
-        {loading && (
-          <div
-            className="flex flex-col items-center justify-center px-4 py-12"
-            role="status"
-            aria-live="polite"
-          >
-            <Loader2
-              className="animate-spin text-emerald-600"
-              size={32}
-              strokeWidth={2}
-              aria-hidden
-            />
-            <p className="mt-3 text-sm font-medium text-slate-600">
-              Loading destinations...
-            </p>
-          </div>
-        )}
-
-        {!loading && error && (
-          <div
-            className="mx-4 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 shadow-sm"
-            role="alert"
-          >
-            <AlertCircle
-              className="mt-0.5 shrink-0 text-red-500"
-              size={20}
-              strokeWidth={2}
-              aria-hidden
-            />
-            <div>
-              <p className="text-sm font-semibold text-red-800">
-                Could not load destinations
-              </p>
-              <p className="mt-1 text-sm text-red-600">{error}</p>
-            </div>
-          </div>
-        )}
-
-        {!loading && !error && filteredAttractions.length === 0 && (
-          <div className="flex min-h-[38vh] flex-col items-center justify-center px-6 py-12 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-100 text-slate-400 shadow-sm">
-              <Search size={28} strokeWidth={1.8} aria-hidden />
-            </div>
-            <h2 className="mt-6 text-lg font-semibold text-slate-800">
-              No locations match your search.
-            </h2>
-            <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-600">
-              Try discovering something else!
-            </p>
-          </div>
-        )}
-
-        {!loading && !error && filteredAttractions.length > 0 && (
-          <ul className="grid grid-cols-1 gap-5 px-4">
-            {filteredAttractions.map((attraction) => (
-              <li key={attraction.slug}>
-                <AttractionCard
-                  attraction={attraction}
-                  isFavorite={isFavorite(attraction.slug)}
-                  onToggleFavorite={toggleFavorite}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </div>
+        
+      </div>
+      <BottomNav/>
+      </div>
+    
   )
 }
