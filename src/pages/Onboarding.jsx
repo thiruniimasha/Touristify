@@ -48,12 +48,12 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen w-screen bg-[#0B1528] lg:bg-slate-50 flex flex-col lg:grid lg:grid-cols-2 font-sans antialiased overflow-x-hidden p-0 m-0">
-      <section className="hidden lg:flex flex-col justify-between p-12 bg-gradient-to from-emerald-600 via-[#0B1528] to-slate-950 text-white relative overflow-hidden h-full">
+      <section className="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-emerald-600 via-[#0B1528] to-slate-950 text-white relative overflow-hidden h-full">
         <div className="absolute inset-0 opacity-30">
-          <div className="absolute left--2rem top-10 h-48 w-48 rounded-full border border-white/40" />
+          <div className="absolute left-[-2rem] top-10 h-48 w-48 rounded-full border border-white/40" />
           <div className="absolute right-8 top-24 h-64 w-64 rounded-full border border-white/20" />
-          <div className="absolute bottom--3rem left-1/3 h-72 w-72 rounded-full border border-white/20" />
-          <div className="absolute inset-0 bg-radial-gradient(circle_at_top_left,_rgba(255,255,255,0.22),_transparent_40%)" />
+          <div className="absolute bottom-[-3rem] left-1/3 h-72 w-72 rounded-full border border-white/20" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.22),_transparent_40%)]" />
         </div>
 
         <div className="relative z-10 flex items-center gap-3">
@@ -81,7 +81,7 @@ export default function Onboarding() {
       </section>
 
       <section className="flex flex-col w-full min-h-screen lg:min-h-full bg-[#0B1528] lg:bg-slate-50">
-        <div className="lg:hidden w-full m-0 p-8 pt-12 bg-gradient-to from-emerald-500 to-emerald-600 text-white rounded-b-[3rem] flex flex-col gap-3 shadow-xl">
+        <div className="lg:hidden w-full m-0 p-8 pt-12 bg-gradient-to-b from-emerald-500 to-emerald-600 text-white rounded-b-[3rem] flex flex-col gap-3 shadow-xl">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
             <Compass size={24} strokeWidth={2.2} aria-hidden />
           </div>
@@ -102,7 +102,7 @@ export default function Onboarding() {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
             <div>
-              <label htmlFor="onboarding-name" className="text-xs font-bold text-slate-200 lg:text-slate-700 tracking-wide uppercase mb-2 flex items-center gap-1.5">
+              <label htmlFor="onboarding-name" className="block text-xs font-bold text-slate-200 lg:text-slate-700 tracking-wide uppercase mb-2 flex items-center gap-1.5">
                 <User size={16} strokeWidth={2} className="text-emerald-400 lg:text-emerald-600" />
                 Your Name
               </label>
@@ -113,7 +113,7 @@ export default function Onboarding() {
                 onChange={(event) => setName(event.target.value)}
                 placeholder="e.g. Imasha"
                 autoComplete="name"
-                className="w-full rounded-xl border border-slate-800 bg-slate-900/40 lg:bg-slate-50 lg:border-slate-200 text-white lg:text-slate-800 py-3.5 px-4 text-sm font-medium placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition-all min-h-48px"
+                className="w-full rounded-xl border border-slate-800 bg-slate-900/40 lg:bg-slate-50 lg:border-slate-200 text-white lg:text-slate-800 py-3.5 px-4 text-sm font-medium placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition-all min-h-[48px]"
                 aria-invalid={Boolean(errors.name)}
                 aria-describedby={errors.name ? 'name-error' : undefined}
               />
@@ -125,7 +125,7 @@ export default function Onboarding() {
             </div>
 
             <div>
-              <label htmlFor="onboarding-contact" className="text-xs font-bold text-slate-200 lg:text-slate-700 tracking-wide uppercase mb-2 flex items-center gap-1.5">
+              <label htmlFor="onboarding-contact" className="block text-xs font-bold text-slate-200 lg:text-slate-700 tracking-wide uppercase mb-2 flex items-center gap-1.5">
                 <Mail size={16} strokeWidth={2} className="text-emerald-400 lg:text-emerald-600" />
                 Email / Mobile Number
               </label>
@@ -136,7 +136,7 @@ export default function Onboarding() {
                 onChange={(event) => setContact(event.target.value)}
                 placeholder="e.g. example@mail.com or 0712345678"
                 autoComplete="email"
-                className="w-full rounded-xl border border-slate-800 bg-slate-900/40 lg:bg-slate-50 lg:border-slate-200 text-white lg:text-slate-800 py-3.5 px-4 text-sm font-medium placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition-all min-h-48px"
+                className="w-full rounded-xl border border-slate-800 bg-slate-900/40 lg:bg-slate-50 lg:border-slate-200 text-white lg:text-slate-800 py-3.5 px-4 text-sm font-medium placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition-all min-h-[48px]"
                 aria-invalid={Boolean(errors.contact)}
                 aria-describedby={errors.contact ? 'contact-error' : undefined}
               />
@@ -149,7 +149,7 @@ export default function Onboarding() {
 
             <button
               type="submit"
-              className="w-full mt-8 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-[0.98] text-sm min-h-48px flex items-center justify-center cursor-pointer font-sans"
+              className="w-full mt-8 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-[0.98] text-sm min-h-[48px] flex items-center justify-center cursor-pointer font-sans"
             >
               Start Exploring
             </button>
