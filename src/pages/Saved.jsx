@@ -72,7 +72,7 @@ export default function Saved() {
               return (
                 <div 
                   key={attraction.id} 
-                  className="rounded-[2rem] overflow-hidden border border-slate-100 bg-white shadow-sm relative h-280px group cursor-pointer" 
+                  className="rounded-[2rem] overflow-hidden border border-slate-100 bg-white shadow-sm relative h-[280px] group cursor-pointer" 
                   onClick={() => navigate(`/attraction/${targetId}`)}
                 >
                   <img 
@@ -80,7 +80,7 @@ export default function Saved() {
                     alt={attraction.name} 
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                   />
-                  <div className="absolute inset-0 bg-gradient-to from-slate-950/90 via-slate-900/20 to-transparent z-10" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/20 to-transparent z-10" />
                   
                   <div className="absolute bottom-0 left-0 right-0 p-5 z-20">
                     <div className="bg-amber-500 text-slate-950 text-[9px] font-black tracking-wider uppercase px-2 py-0.5 rounded w-max">

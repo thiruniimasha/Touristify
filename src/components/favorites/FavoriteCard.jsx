@@ -10,7 +10,7 @@ export default function FavoriteCard({ attraction, onRemove }) {
       <Link to={`/attraction/${attraction.slug}`} className="shrink-0">
         <div className="relative h-20 w-20 overflow-hidden rounded-xl bg-slate-200">
           {imageFailed ? (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to from-emerald-500 to-blue-600">
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-500 to-blue-600">
               <Mountain className="text-white/90" size={24} aria-hidden />
             </div>
           ) : (
