@@ -214,7 +214,7 @@ export default function Home() {
               filtered.map((attraction) => (
                 <div
                   key={attraction.slug}
-                  className="rounded-[2rem] overflow-hidden border border-slate-100 bg-white shadow-sm relative group h-[280px] cursor-pointer"
+                  className="rounded-[2rem] overflow-hidden border border-slate-100 bg-white shadow-sm relative group h-280px cursor-pointer"
                   onClick={() => navigate(`/attraction/${attraction.slug}`)}
                 >
                   {/* Image Element */}
@@ -225,7 +225,7 @@ export default function Home() {
                   />
 
                   {/* Dark Scrim Mask Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/20 to-transparent z-10" />
+                  <div className="absolute inset-0 bg-gradient-to from-slate-950/90 via-slate-900/20 to-transparent z-10" />
 
                   
 

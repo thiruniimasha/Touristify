@@ -61,7 +61,7 @@ export default function Profile() {
             <select
               value={selected}
               onChange={(e) => handleSelect(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 px-4 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all min-h-[48px]"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 px-4 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all min-h-48px"
             >
               <option value="live">🟢 Current Live Location (Default)</option>
               {Array.isArray(districts) && districts.length > 0 ? (
@@ -99,7 +99,7 @@ export default function Profile() {
           {/* DESTRUCTIVE TERMINAL RESET & LOGOUT BUTTON (Strict 48px Target) */}
           <button
             onClick={logout}
-            className="w-full mt-8 bg-red-50 text-red-600 hover:bg-red-100/70 border border-red-200 font-bold py-3 px-4 rounded-2xl transition-all active:scale-95 text-sm min-h-[48px] flex items-center justify-center cursor-pointer"
+            className="w-full mt-8 bg-red-50 text-red-600 hover:bg-red-100/70 border border-red-200 font-bold py-3 px-4 rounded-2xl transition-all active:scale-95 text-sm min-h-48px flex items-center justify-center cursor-pointer"
           >
             Reset Profile &amp; Logout
           </button>

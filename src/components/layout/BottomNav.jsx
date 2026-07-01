@@ -32,7 +32,7 @@ export default function BottomNav() {
             key={tab.value}
             type="button"
             onClick={() => navigate(tab.route)}
-            className={`flex flex-col items-center justify-center min-w-[48px] min-h-[48px] cursor-pointer active:scale-95 transition-all text-[11px] ${isActive ? 'text-emerald-500 font-bold' : 'text-slate-400 hover:text-emerald-400'}`}
+            className={`flex flex-col items-center justify-center min-w-48px min-h-48px cursor-pointer active:scale-95 transition-all text-[11px] ${isActive ? 'text-emerald-500 font-bold' : 'text-slate-400 hover:text-emerald-400'}`}
           >
             <span className="relative">
               <Icon size={20} strokeWidth={2.5} aria-hidden />
