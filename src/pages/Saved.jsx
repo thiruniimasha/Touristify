@@ -59,7 +59,7 @@ export default function Saved() {
             </div>
             <button 
               onClick={() => navigate('/')} 
-              className="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-2xl font-bold active:scale-95 transition-all text-xs shadow-md cursor-pointer min-h-[48px]"
+              className="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-2xl font-bold active:scale-95 transition-all text-xs shadow-md cursor-pointer min-h-48px"
             >
               Explore Places
             </button>
@@ -72,7 +72,7 @@ export default function Saved() {
               return (
                 <div 
                   key={attraction.id} 
-                  className="rounded-[2rem] overflow-hidden border border-slate-100 bg-white shadow-sm relative h-[280px] group cursor-pointer" 
+                  className="rounded-[2rem] overflow-hidden border border-slate-100 bg-white shadow-sm relative h-280px group cursor-pointer" 
                   onClick={() => navigate(`/attraction/${targetId}`)}
                 >
                   <img 
@@ -80,7 +80,7 @@ export default function Saved() {
                     alt={attraction.name} 
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/20 to-transparent z-10" />
+                  <div className="absolute inset-0 bg-gradient-to from-slate-950/90 via-slate-900/20 to-transparent z-10" />
                   
                   <div className="absolute bottom-0 left-0 right-0 p-5 z-20">
                     <div className="bg-amber-500 text-slate-950 text-[9px] font-black tracking-wider uppercase px-2 py-0.5 rounded w-max">
@@ -102,7 +102,7 @@ export default function Saved() {
                           e.stopPropagation()
                           toggleFavorite(targetId) 
                         }} 
-                        className="bg-white/90 text-emerald-600 p-2.5 rounded-full shadow hover:bg-white active:scale-90 transition-all min-h-[40px] min-w-[40px] flex items-center justify-center cursor-pointer"
+                        className="bg-white/90 text-emerald-600 p-2.5 rounded-full shadow hover:bg-white active:scale-90 transition-all min-h-40px min-w-40px flex items-center justify-center cursor-pointer"
                       >
                         <Heart className={`h-4 w-4 ${isFavorite(targetId) ? 'fill-current' : ''}`} />
                       </button>
